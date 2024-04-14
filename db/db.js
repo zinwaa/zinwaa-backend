@@ -18,9 +18,9 @@ async function executeQuery(query, params = []) {
 export default async function fetchSomeData(sql, params = []) {
     try {
         const results = await executeQuery(sql, params);
-        console.log('Query results:', results);
+        return results;
     } catch (error) {
-        console.error('Error executing query:', error);
+        return error;
     }
 }
 
