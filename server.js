@@ -9,7 +9,7 @@ const app = express();
 //引入session
 import session from 'express-session';
 app.use(session({
-    secret: 'secret',
+    secret: 'NPIhpOsdfasAIJSuFahjHKFadsDOAJ-ZinWaa',
     resave: false,
     saveUninitialized: true,
     cookie: {
