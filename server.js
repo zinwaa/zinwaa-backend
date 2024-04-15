@@ -49,11 +49,12 @@ app.post('/api/login', async (req, res) => {
                 message: '密码错误，请重新输入',
             }
         } else {
+            req.session.username = username;
             result = {
                 status: true,
                 message: `登录成功,欢迎您：${username}`,
+                username: req.session.username
             }
-            req.session.username = username;
         }
     } catch (err) {
         console.log(err);
