@@ -6,6 +6,17 @@ import fetchSomeData from './db/db.js';
 import express from 'express';
 const app = express();
 
+//引入session
+import session from 'express-session';
+app.use(session({
+    secret: 'secret',
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+        maxAge: 1000 * 60 * 60 * 6
+    }
+}));
+
 // 解决cors跨域问题
 import cors from 'cors';
 app.use(cors())
@@ -42,6 +53,7 @@ app.post('/api/login', async (req, res) => {
                 status: true,
                 message: `登录成功,欢迎您：${username}`,
             }
+            req.session.username = username;
         }
     } catch (err) {
         console.log(err);
