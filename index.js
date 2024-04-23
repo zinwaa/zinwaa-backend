@@ -108,6 +108,50 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
+//-------------------------------------------- sql语句生成器 --------------------------------------------
+
+//---------------------------------------------- table 表 ----------------------------------------------
+app.post('api/sqlcreate/table/addTable', async (req, res) => {
+    let result = {
+        status: false,
+        message: '保存表失败', // 默认消息
+    };
+    const { title, name, comment, time, userid, fieldList } = req.body;
+    const sql = `SELECT userid,title FROM Table where userid = ? AND title = ?`;
+    try {
+        const sqlResult = await fetchSomeData(sql, [userid, title]);
+        if (sqlResult.length !== 0) {
+            result = {
+                status: false,
+                message: '此表已存在，请重新输入',
+            }
+        } else {
+            const insertsql = `INSERT INTO Table (userid,title,table_name,table_comment,table_time) VALUES (?,?,?,?,?)`;
+            const insertTable = await fetchSomeData(insertsql, [userid, title, name, comment, time]);
+            if (insertTable && insertTable.affectedRows > 0) {
+                fieldList.forEach(async item => {
+                    const insertsql = `INSERT INTO fieldlist (field_name,userid,table_title) VALUES (?,?,?)`;
+                    await fetchSomeData(insertsql, [item, userid, title]);
+                });
+
+                result = {
+                    status: true,
+                    message: '已成功保存该表',
+                }
+            } else {
+                result = {
+                    status: false,
+                    message: '保存表失败',
+                }
+            }
+        }
+    } catch (err) {
+        console.log(err);
+    } finally {
+        res.send(result);
+    }
+})
+
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
 });
