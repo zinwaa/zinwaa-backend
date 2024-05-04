@@ -111,29 +111,25 @@ app.post('/api/register', async (req, res) => {
 //-------------------------------------------- sql语句生成器 --------------------------------------------
 
 //---------------------------------------------- table 表 ----------------------------------------------
-app.post('api/sqlcreate/table/addTable', async (req, res) => {
+app.post('/api/sqlcreate/table/addTable', async (req, res) => {
     let result = {
         status: false,
         message: '保存表失败', // 默认消息
     };
-    const { title, name, comment, time, userid, fieldList } = req.body;
-    const sql = `SELECT userid,title FROM Table where userid = ? AND title = ?`;
+    const { data, time, title, userid } = req.body;
+    const sql = `SELECT userid,title FROM SQLtable where userid = ? AND title = ?`;
     try {
         const sqlResult = await fetchSomeData(sql, [userid, title]);
+
         if (sqlResult.length !== 0) {
             result = {
                 status: false,
                 message: '此表已存在，请重新输入',
             }
         } else {
-            const insertsql = `INSERT INTO Table (userid,title,table_name,table_comment,table_time) VALUES (?,?,?,?,?)`;
-            const insertTable = await fetchSomeData(insertsql, [userid, title, name, comment, time]);
+            const insertsql = `INSERT INTO SQLtable (userid,title,tableData,time) VALUES (?,?,?,?)`;
+            const insertTable = await fetchSomeData(insertsql, [userid, title, data, time]);
             if (insertTable && insertTable.affectedRows > 0) {
-                fieldList.forEach(async item => {
-                    const insertsql = `INSERT INTO fieldlist (field_name,userid,table_title) VALUES (?,?,?)`;
-                    await fetchSomeData(insertsql, [item, userid, title]);
-                });
-
                 result = {
                     status: true,
                     message: '已成功保存该表',
@@ -151,6 +147,48 @@ app.post('api/sqlcreate/table/addTable', async (req, res) => {
         res.send(result);
     }
 })
+// 获取表
+app.post('/api/sqlcreate/table/getTable', async (req, res) => {
+    let result = {
+        status: false,
+        message: '获取表失败',
+        data: [], // 默认消息
+    };
+    const { userid } = req.body;
+
+    // 构建SQL查询条件，如果userid为空，则查询所有记录
+    const sqlCondition = userid ? `userid = ?` : '1 = 1';
+    const sqlParams = userid ? [userid] : [];
+
+    try {
+        // 动态插入条件
+        const sql = `SELECT userid,title,tableData,time FROM SQLtable WHERE ${sqlCondition}`;
+        const sqlResult = await fetchSomeData(sql, sqlParams);
+
+        if (sqlResult.length !== 0) {
+            result = {
+                status: true,
+                message: '获取表成功',
+                data: sqlResult
+            };
+        } else {
+            // 即使没有数据，也不应视为错误，可能是正常情况
+            result = {
+                status: true,
+                message: '没有找到相关记录',
+                data: []
+            };
+        }
+    } catch (err) {
+        console.error(err); // 使用console.error更好地记录错误
+        result.message = '获取表时发生错误'; // 更新错误信息
+    } finally {
+        res.send(result);
+    }
+});
+
+
+
 
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
