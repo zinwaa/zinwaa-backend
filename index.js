@@ -187,6 +187,72 @@ app.post('/api/sqlcreate/table/getTable', async (req, res) => {
     }
 });
 
+//---------------------------------------------- Field 表 ----------------------------------------------
+app.post('/api/sqlcreate/field/addField', async (req, res) => {
+    let result = {
+        status: false,
+        message: '保存字段失败', // 默认消息
+    };
+    const { data, time, title, userid, tag } = req.body;
+    try {
+        const sql = `SELECT userid,title FROM SQLfield where userid = ? AND title = ?`;
+        const sqlResult = await fetchSomeData(sql, [userid, title]);
+        if (sqlResult.length !== 0) {
+            result = {
+                status: false,
+                message: '此字段已存在，请重新输入',
+            }
+        } else {
+            const insertsql = `INSERT INTO SQLfield (userid,title,fieldData,time,tag) VALUES (?,?,?,?,?)`;
+            const insertTable = await fetchSomeData(insertsql, [userid, title, data, time, tag]);
+            if (insertTable && insertTable.affectedRows > 0) {
+                result = {
+                    status: true,
+                    message: '已成功保存该字段',
+                }
+            } else {
+                result = {
+                    status: false,
+                    message: '保存字段失败',
+                }
+            }
+        }
+    } catch (err) {
+        console.log(err);
+    } finally {
+        res.send(result);
+    }
+});
+app.post('/api/sqlcreate/field/getField', async (req, res) => {
+    let result = {
+        status: false,
+        message: '获取字段失败',
+        data: [], // 默认消息
+    };
+    const { userid } = req.body;
+    try {
+        const sql = `SELECT userid,title,fieldData,time,tag FROM SQLfield WHERE userid = ?`;
+        const sqlResult = await fetchSomeData(sql, [userid]);
+        if (sqlResult.length !== 0) {
+            result = {
+                status: true,
+                message: '获取字段成功',
+                data: sqlResult
+            };
+        } else {
+            // 即使没有数据，也不应视为错误，可能是正常情况
+            result = {
+                status: true,
+                message: '没有找到相关记录',
+                data: []
+            };
+        }
+    } catch (err) {
+        console.log(err);
+    } finally {
+        res.send(result);
+    }
+});
 
 
 
