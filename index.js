@@ -230,9 +230,13 @@ app.post('/api/sqlcreate/field/getField', async (req, res) => {
         data: [], // 默认消息
     };
     const { userid } = req.body;
+
+    // 构建SQL查询条件，如果userid为空，则查询所有记录
+    const sqlCondition = userid ? `userid = ?` : '1 = 1';
+    const sqlParams = userid ? [userid] : [];
     try {
-        const sql = `SELECT userid,title,fieldData,time,tag FROM SQLfield WHERE userid = ?`;
-        const sqlResult = await fetchSomeData(sql, [userid]);
+        const sql = `SELECT userid,title,fieldData,time,tag FROM SQLfield WHERE ${sqlCondition}`;
+        const sqlResult = await fetchSomeData(sql, sqlParams);
         if (sqlResult.length !== 0) {
             result = {
                 status: true,
